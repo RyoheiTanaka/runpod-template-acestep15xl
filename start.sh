@@ -190,14 +190,21 @@ if [ "${pinned_mode}" = "off" ]; then
   COMFY_ARGS+=(--disable-pinned-memory)
 elif [ "${pinned_mode}" = "auto" ]; then
   if limit_b="$(container_memory_limit_bytes)" && host_b="$(host_memory_bytes)"; then
-    limit_gb=$((limit_b / 1024 / 1024 / 1024))
     host_gb=$((host_b / 1024 / 1024 / 1024))
-    echo "[start] memory: container limit ${limit_gb}GB / host ${host_gb}GB"
-    # 上限がホストの 80% 未満なら、ComfyUI が見ている値は実態より大きい
-    if [ "${limit_b}" -lt $((host_b / 10 * 8)) ]; then
-      echo "[start] container limit is well below host RAM, disabling pinned memory"
-      echo "[start] set COMFY_PINNED_MEMORY=on to keep it enabled"
-      COMFY_ARGS+=(--disable-pinned-memory)
+    # cgroup v2 は「上限なし」を max ではなく巨大な数値で返すことがあり、その場合
+    # 上の max 判定を素通りする。ホスト RAM 以上の上限は実質「上限なし」なので、
+    # 桁の狂った GB を表示せずにそう扱う。
+    if [ "${limit_b}" -ge "${host_b}" ]; then
+      echo "[start] memory: no container limit / host ${host_gb}GB"
+    else
+      limit_gb=$((limit_b / 1024 / 1024 / 1024))
+      echo "[start] memory: container limit ${limit_gb}GB / host ${host_gb}GB"
+      # 上限がホストの 80% 未満なら、ComfyUI が見ている値は実態より大きい
+      if [ "${limit_b}" -lt $((host_b / 10 * 8)) ]; then
+        echo "[start] container limit is well below host RAM, disabling pinned memory"
+        echo "[start] set COMFY_PINNED_MEMORY=on to keep it enabled"
+        COMFY_ARGS+=(--disable-pinned-memory)
+      fi
     fi
   else
     echo "[start] memory: could not read the container limit, leaving pinned memory as-is"

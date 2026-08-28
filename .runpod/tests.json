@@ -3,7 +3,7 @@
     {
       "name": "comfyui_serves_system_stats",
       "input": {},
-      "timeout": 2400000
+      "timeout": 1800000
     }
   ],
   "config": {
