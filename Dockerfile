@@ -1,4 +1,10 @@
-ARG BASE_IMAGE=runpod/pytorch:2.8.0-py3.11-cuda12.8.1-cudnn-devel-ubuntu22.04
+# A pod boot measured image pull at 5m45s of a 7m23s startup against a Hub test
+# deadline of roughly 7 minutes, and the base was nearly all of that weight: of
+# 30.6GB uncompressed, only 1.7GB was ours. The devel variant ships nvcc,
+# headers and static libs that never run. This runtime image is 3.99GB
+# compressed against roughly 9.4GB, on the same torch 2.8.0 and CUDA 12.8 --
+# and it carries the release build rather than a dated dev snapshot.
+ARG BASE_IMAGE=pytorch/pytorch:2.8.0-cuda12.8-cudnn9-runtime
 FROM ${BASE_IMAGE}
 
 ARG COMFYUI_REPO=https://github.com/Comfy-Org/ComfyUI.git

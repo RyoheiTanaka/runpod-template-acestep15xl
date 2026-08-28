@@ -25,24 +25,22 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # cuda12.8 is the default: both bases carry NVIDIA_REQUIRE_CUDA, and
-        # cuda12.8 asks the host for cuda>=12.8 while cuda13.0 asks for
-        # cuda>=13.0 -- so the 12.8 image starts on strictly more hosts.
+        # cuda12.8 is the default. The old runpod base carried
+        # NVIDIA_REQUIRE_CUDA, which failed a container before it started when
+        # the host was below the required version; the pytorch base does not
+        # appear to, so an unsuitable host will surface as a runtime error
+        # instead. allowedCudaVersions in hub.json is what keeps deploys on
+        # hosts that can actually run this.
         cuda:
+          # The default, and what the Hub itself builds: the Hub passes no
+          # build-args, so the Dockerfile's own ARG default is what it uses.
           - tag: cuda12.8
-            base: runpod/pytorch:2.8.0-py3.11-cuda12.8.1-cudnn-devel-ubuntu22.04
+            base: pytorch/pytorch:2.8.0-cuda12.8-cudnn9-runtime
+          # Kept as an option. On cu128 comfy-kitchen reports its cuda and
+          # triton backends as disabled and falls back to eager, so a cu130
+          # build may generate faster -- unmeasured, and on a heavier base.
           - tag: cuda13.0
             base: runpod/pytorch:1.1.0-cu1300-torch291-ubuntu2404
-          # Candidate replacement for the default. A pod boot measured image
-          # pull at 5m45s of a 7m23s startup -- 78% of it -- against a Hub test
-          # deadline of roughly 7 minutes. The base is nearly all of that
-          # weight: of 30.6GB uncompressed, only 1.7GB is ours. The devel base
-          # ships nvcc, headers and static libs that ComfyUI never uses at
-          # runtime, and the official runtime image is 3.99GB compressed
-          # against roughly 9.4GB for the current one. Same torch 2.8.0 and
-          # CUDA 12.8, so the versions already proven to work are unchanged.
-          - tag: cuda12.8-slim
-            base: pytorch/pytorch:2.8.0-cuda12.8-cudnn9-runtime
 
     steps:
       - name: Checkout

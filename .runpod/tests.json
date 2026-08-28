@@ -11,10 +11,6 @@
     "gpuCount": 1,
     "env": [
       {
-        "key": "RUNPOD_INIT_TIMEOUT",
-        "value": "1800"
-      },
-      {
         "key": "ACESTEP_XL_VARIANT",
         "value": "xl_turbo"
       },

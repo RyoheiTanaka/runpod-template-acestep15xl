@@ -17,17 +17,26 @@ combination (Turbo + Qwen 0.6B) to keep that first boot short.
 
 On a Pod, open **Connect to HTTP Service [Port 8188]** to reach ComfyUI.
 
-### First boot is slow, deliberately
+### First boot
 
-Because models are downloaded rather than baked in, the first boot pulls a
-~10GB image and then several GB of weights. Measured end to end with the
-default preset, a container reaches a serving ComfyUI in about 7 minutes.
+Models are downloaded rather than baked in, so the first boot pulls the image
+and then the weights. Measured on a Runpod pod with an RTX 4090 and the default
+preset:
 
-On a Pod that is a one-time wait. On a load balancing endpoint it is a cold
-start every time a worker spins up from zero, which is why this listing sets
-`RUNPOD_INIT_TIMEOUT=1800` — the platform otherwise marks a worker unhealthy
-after 7 minutes. If you need fast cold starts, keep an active worker rather
-than scaling to zero.
+| | |
+|---|---|
+| image pull and unpack | 4m27s |
+| model download | 25s |
+| ComfyUI startup | 9s |
+| **total** | **5m01s** |
+
+The pull dominates; the model download is a small part of it, which is why the
+weights are not baked into the image — doing that would add gigabytes to the
+slow half to save part of the fast one.
+
+On a Pod this is a one-time wait. On a load balancing endpoint it is a cold
+start every time a worker starts from zero, so keep an active worker rather
+than scaling to zero if that matters to you.
 
 ## Environment variables
 
