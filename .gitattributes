@@ -3,3 +3,4 @@
 *.json text eol=lf
 *.py text eol=lf
 Dockerfile text eol=lf
+*.yml text eol=lf
