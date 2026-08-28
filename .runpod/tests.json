@@ -1,0 +1,21 @@
+{
+  "tests": [
+    {
+      "name": "comfyui_serves_system_stats",
+      "input": {},
+      "timeout": 2400000
+    }
+  ],
+  "config": {
+    "gpuTypeId": "NVIDIA GeForce RTX 4090",
+    "gpuCount": 1,
+    "env": [
+      { "key": "ACESTEP_XL_VARIANT", "value": "xl_turbo" },
+      { "key": "ACESTEP_LM", "value": "qwen_0.6b" },
+      { "key": "PORT", "value": "8188" },
+      { "key": "PORT_HEALTH", "value": "8189" },
+      { "key": "HEALTH_CHECK_PATH", "value": "/ping" }
+    ],
+    "allowedCudaVersions": ["13.0", "12.9", "12.8"]
+  }
+}

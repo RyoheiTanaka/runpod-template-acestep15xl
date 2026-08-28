@@ -1,0 +1,99 @@
+{
+  "title": "ComfyUI ACE-Step 1.5 XL",
+  "description": "ACE-Step 1.5 XL music generation on ComfyUI. Models are fetched on first boot, so nothing is baked into the image. Deploy as a Pod for the ComfyUI web UI, or as a load balancing endpoint to drive the ComfyUI HTTP API directly.",
+  "type": "serverless",
+  "category": "audio",
+
+  "config": {
+    "runsOn": "GPU",
+    "endpointType": "LB",
+    "containerDiskInGb": 100,
+
+    "gpuCount": 1,
+    "gpuIds": "AMPERE_24,ADA_24,AMPERE_48,ADA_48_PRO,AMPERE_80,ADA_80_PRO,HOPPER_141",
+    "allowedCudaVersions": ["13.0", "12.9", "12.8"],
+
+    "presets": [
+      {
+        "name": "Turbo (smallest, recommended)",
+        "defaults": {
+          "ACESTEP_XL_VARIANT": "xl_turbo",
+          "ACESTEP_LM": "qwen_0.6b"
+        }
+      },
+      {
+        "name": "Base",
+        "defaults": {
+          "ACESTEP_XL_VARIANT": "xl_base",
+          "ACESTEP_LM": "qwen_1.7b"
+        }
+      },
+      {
+        "name": "All models (longest first boot)",
+        "defaults": {
+          "ACESTEP_XL_VARIANT": "all",
+          "ACESTEP_LM": "all"
+        }
+      }
+    ],
+
+    "env": [
+      { "key": "PORT", "value": "8188" },
+      { "key": "PORT_HEALTH", "value": "8189" },
+      { "key": "HEALTH_CHECK_PATH", "value": "/ping" },
+      { "key": "COMFY_PINNED_MEMORY", "value": "auto" },
+      { "key": "HF_XET_HIGH_PERFORMANCE", "value": "1" },
+
+      {
+        "key": "ACESTEP_XL_VARIANT",
+        "input": {
+          "name": "Diffusion model",
+          "type": "string",
+          "description": "Which ACE-Step 1.5 XL diffusion model to download on first boot. Downloading all three roughly triples the first-boot time.",
+          "options": [
+            { "label": "Turbo (fastest to download)", "value": "xl_turbo" },
+            { "label": "Base", "value": "xl_base" },
+            { "label": "SFT", "value": "xl_sft" },
+            { "label": "All three", "value": "all" }
+          ],
+          "default": "xl_turbo"
+        }
+      },
+      {
+        "key": "ACESTEP_LM",
+        "input": {
+          "name": "Text encoder",
+          "type": "string",
+          "description": "Which Qwen text encoder to download. Larger encoders follow prompts more closely but take longer to download and use more VRAM.",
+          "options": [
+            { "label": "Qwen 0.6B", "value": "qwen_0.6b" },
+            { "label": "Qwen 1.7B", "value": "qwen_1.7b" },
+            { "label": "Qwen 4B", "value": "qwen_4b" },
+            { "label": "All three", "value": "all" }
+          ],
+          "default": "qwen_0.6b"
+        }
+      },
+      {
+        "key": "HF_TOKEN",
+        "input": {
+          "name": "Hugging Face token",
+          "type": "string",
+          "description": "Optional. Set a real token to avoid anonymous rate limits during the model download.",
+          "default": "",
+          "advanced": true
+        }
+      },
+      {
+        "key": "COMFY_EXTRA_ARGS",
+        "input": {
+          "name": "Extra ComfyUI arguments",
+          "type": "string",
+          "description": "Space-separated arguments passed straight to ComfyUI, for example --lowvram --cache-none.",
+          "default": "",
+          "advanced": true
+        }
+      }
+    ]
+  }
+}
