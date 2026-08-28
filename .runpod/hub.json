@@ -38,6 +38,7 @@
     ],
 
     "env": [
+      { "key": "RUNPOD_INIT_TIMEOUT", "value": "1800" },
       { "key": "PORT", "value": "8188" },
       { "key": "PORT_HEALTH", "value": "8189" },
       { "key": "HEALTH_CHECK_PATH", "value": "/ping" },
