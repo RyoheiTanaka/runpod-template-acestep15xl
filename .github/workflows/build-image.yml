@@ -1,0 +1,70 @@
+name: Build image
+
+# The Runpod Hub builds its own image from this repository and keeps it in
+# registry.runpod.net, which is only pullable through a Hub deploy. That leaves
+# no way to run this container anywhere else -- including a plain Pod, which is
+# where its logs are actually readable. This workflow publishes the same build
+# to GHCR so the image can be pulled normally, for diagnosis and for anyone who
+# wants to run it outside the Hub.
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # cuda12.8 is the default: both bases carry NVIDIA_REQUIRE_CUDA, and
+        # cuda12.8 asks the host for cuda>=12.8 while cuda13.0 asks for
+        # cuda>=13.0 -- so the 12.8 image starts on strictly more hosts.
+        cuda:
+          - tag: cuda12.8
+            base: runpod/pytorch:2.8.0-py3.11-cuda12.8.1-cudnn-devel-ubuntu22.04
+          - tag: cuda13.0
+            base: runpod/pytorch:1.1.0-cu1300-torch291-ubuntu2404
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/ryoheitanaka/runpod-template-acestep15xl
+          tags: |
+            type=raw,value=latest-${{ matrix.cuda.tag }},enable={{is_default_branch}}
+            type=ref,event=tag,suffix=-${{ matrix.cuda.tag }}
+            type=sha,suffix=-${{ matrix.cuda.tag }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile
+          push: true
+          build-args: |
+            BASE_IMAGE=${{ matrix.cuda.base }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
