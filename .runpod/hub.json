@@ -45,12 +45,8 @@
         "value": "8188"
       },
       {
-        "key": "PORT_HEALTH",
-        "value": "8189"
-      },
-      {
         "key": "HEALTH_CHECK_PATH",
-        "value": "/ping"
+        "value": "/system_stats"
       },
       {
         "key": "COMFY_PINNED_MEMORY",

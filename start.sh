@@ -24,14 +24,20 @@ echo "[start] output: ${OUTPUT_DIR}"
 echo "[start] ACE-Step XL variant: ${ACESTEP_XL_VARIANT}"
 echo "[start] ACE-Step LM: ${ACESTEP_LM}"
 
-# RunPod load balancing endpoint 用の health check サーバ。
-# モデル download 中は ComfyUI がまだ起動しておらず worker が unhealthy 判定になるため、
-# download を始める前に立てて 204（initializing）を返しておく。
-# Pod として起動した場合は誰も polling しないので、単に遊んでいるだけになる。
-if [ -f /opt/runpod/healthcheck.py ]; then
-  COMFY_PORT="${COMFY_PORT}" PORT_HEALTH="${PORT_HEALTH:-8189}" \
-    python /opt/runpod/healthcheck.py &
-  echo "[start] health check: listening on 0.0.0.0:${PORT_HEALTH:-8189}"
+# モデル download 中は ComfyUI がまだ起動しておらず、health check は「起動中」ではなく
+# 「不健全」に見える。専用ポートを立てればその区別を 204 で伝えられるが、Hub の listing は
+# 公開ポートを宣言できず PORT しか到達しないため、既定では立てない。
+# PORT_HEALTH が明示され、かつ ComfyUI と別ポートのときだけ起動する。
+# 同じポートを指定されたら、先に bind した側が ComfyUI の起動を妨げるので拒否する。
+if [ -n "${PORT_HEALTH:-}" ] && [ -f /opt/runpod/healthcheck.py ]; then
+  if [ "${PORT_HEALTH}" = "${COMFY_PORT}" ]; then
+    echo "[start] PORT_HEALTH equals COMFY_PORT (${COMFY_PORT}), not starting the health check server"
+    echo "[start] point HEALTH_CHECK_PATH at ComfyUI's own /system_stats instead"
+  else
+    COMFY_PORT="${COMFY_PORT}" PORT_HEALTH="${PORT_HEALTH}" \
+      python /opt/runpod/healthcheck.py &
+    echo "[start] health check: listening on 0.0.0.0:${PORT_HEALTH}"
+  fi
 fi
 
 if [ "${HF_TOKEN:-}" = "your-huggingface-token" ]; then

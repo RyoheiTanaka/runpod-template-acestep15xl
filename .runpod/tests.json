@@ -3,7 +3,7 @@
     {
       "name": "comfyui_serves_system_stats",
       "input": {},
-      "timeout": 1800000
+      "timeout": 900000
     }
   ],
   "config": {
@@ -23,12 +23,8 @@
         "value": "8188"
       },
       {
-        "key": "PORT_HEALTH",
-        "value": "8189"
-      },
-      {
         "key": "HEALTH_CHECK_PATH",
-        "value": "/ping"
+        "value": "/system_stats"
       }
     ],
     "allowedCudaVersions": [

@@ -48,7 +48,7 @@ than scaling to zero if that matters to you.
 | `COMFY_PINNED_MEMORY` | `auto` | `auto` reads the container memory limit from cgroup and disables pinned memory when that limit is well below host RAM. Override with `on` or `off`. |
 | `COMFY_EXTRA_ARGS` | unset | Extra arguments passed straight to ComfyUI, for example `--lowvram`, `--cache-none`, `--reserve-vram 2`. |
 | `PORT` | `8188` | Port ComfyUI listens on. `COMFY_PORT` works too. |
-| `PORT_HEALTH` | `8189` | Port for the health check server. Only used by load balancing endpoints. |
+| `PORT_HEALTH` | unset | Set to a second port (e.g. `8189`) to run the bundled health check server there, reporting 204 while models download. Only reachable where you control port exposure. |
 | `WORKSPACE` | `/workspace` | Base directory for ComfyUI, models, cache, and logs. |
 
 Unsupported values make the start script exit with an explicit error rather than
@@ -80,12 +80,16 @@ If it still dies, pass `--lowvram` or `--cache-none` via `COMFY_EXTRA_ARGS`.
 
 ## Health check
 
-For load balancing endpoints, a small health check server listens on
-`PORT_HEALTH`. It returns `204` (initializing) while models are still
-downloading and ComfyUI is not up yet, and `200` once ComfyUI's `/system_stats`
-responds.
+Load balancing endpoints poll `HEALTH_CHECK_PATH`, which points at ComfyUI's own
+`/system_stats` on the main port. That returns 200 once ComfyUI is serving, and
+nothing answers before then, so a worker counts as unhealthy while it is still
+downloading models rather than reporting itself as starting up.
 
-This server is unused when deployed as a Pod.
+`healthcheck.py` ships in the image and can report that distinction — 204 while
+models download, 200 once ComfyUI answers — by setting `PORT_HEALTH` to a
+second port such as 8189. It is not used by default: a Hub listing has no way
+to declare which ports are exposed, so only the main `PORT` is reachable there.
+Use it where you control port exposure, such as a Pod.
 
 ## Paths
 
