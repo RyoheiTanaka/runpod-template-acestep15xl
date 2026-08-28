@@ -42,7 +42,7 @@
     "env": [
       {
         "key": "PORT",
-        "value": "8188"
+        "value": "80"
       },
       {
         "key": "HEALTH_CHECK_PATH",

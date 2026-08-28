@@ -15,7 +15,7 @@ combination (Turbo + Qwen 0.6B) to keep that first boot short.
 | Pod | Use the ComfyUI web UI in a browser. Start here. |
 | Load balancing endpoint | Call the ComfyUI HTTP API directly, with autoscaling. |
 
-On a Pod, open **Connect to HTTP Service [Port 8188]** to reach ComfyUI.
+On a Pod, open **Connect to HTTP Service [Port 80]** to reach ComfyUI.
 
 ### First boot
 
@@ -47,7 +47,7 @@ than scaling to zero if that matters to you.
 | `HF_TOKEN` | unset | Optional. Set a real token to avoid anonymous rate limits while downloading. |
 | `COMFY_PINNED_MEMORY` | `auto` | `auto` reads the container memory limit from cgroup and disables pinned memory when that limit is well below host RAM. Override with `on` or `off`. |
 | `COMFY_EXTRA_ARGS` | unset | Extra arguments passed straight to ComfyUI, for example `--lowvram`, `--cache-none`, `--reserve-vram 2`. |
-| `PORT` | `8188` | Port ComfyUI listens on. `COMFY_PORT` works too. |
+| `PORT` | `80` | Port ComfyUI listens on — the platform's default for a load balancing worker, so both sides agree on it. `COMFY_PORT` overrides it. |
 | `PORT_HEALTH` | unset | Set to a second port (e.g. `8189`) to run the bundled health check server there, reporting 204 while models download. Only reachable where you control port exposure. |
 | `WORKSPACE` | `/workspace` | Base directory for ComfyUI, models, cache, and logs. |
 
