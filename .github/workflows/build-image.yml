@@ -33,6 +33,16 @@ jobs:
             base: runpod/pytorch:2.8.0-py3.11-cuda12.8.1-cudnn-devel-ubuntu22.04
           - tag: cuda13.0
             base: runpod/pytorch:1.1.0-cu1300-torch291-ubuntu2404
+          # Candidate replacement for the default. A pod boot measured image
+          # pull at 5m45s of a 7m23s startup -- 78% of it -- against a Hub test
+          # deadline of roughly 7 minutes. The base is nearly all of that
+          # weight: of 30.6GB uncompressed, only 1.7GB is ours. The devel base
+          # ships nvcc, headers and static libs that ComfyUI never uses at
+          # runtime, and the official runtime image is 3.99GB compressed
+          # against roughly 9.4GB for the current one. Same torch 2.8.0 and
+          # CUDA 12.8, so the versions already proven to work are unchanged.
+          - tag: cuda12.8-slim
+            base: pytorch/pytorch:2.8.0-cuda12.8-cudnn9-runtime
 
     steps:
       - name: Checkout
