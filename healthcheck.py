@@ -32,8 +32,14 @@ def comfy_is_up() -> bool:
 
 class HealthHandler(BaseHTTPRequestHandler):
     def do_GET(self) -> None:  # noqa: N802 (BaseHTTPRequestHandler naming)
-        self.send_response(200 if comfy_is_up() else 204)
-        self.send_header("Content-Length", "0")
+        if comfy_is_up():
+            self.send_response(200)
+            self.send_header("Content-Length", "0")
+        else:
+            # A 204 must not carry content, so it gets no Content-Length either.
+            # Some proxies treat the pair as a framing error and drop the response,
+            # which the load balancer would read as unhealthy rather than starting.
+            self.send_response(204)
         self.end_headers()
 
     def log_message(self, *_args) -> None:
