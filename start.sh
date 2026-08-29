@@ -228,4 +228,18 @@ fi
 echo "[start] ready: ComfyUI will listen on 0.0.0.0:${COMFY_PORT}"
 echo "[start] args: ${COMFY_ARGS[*]}"
 cd "${COMFY_DIR}"
-exec python main.py "${COMFY_ARGS[@]}"
+
+# ComfyUI は背景に回し、web UI を出したまま handler を前面に置く。同じイメージが
+# Pod（ブラウザで ComfyUI）でも Serverless（キュー API）でも成立する。
+python main.py "${COMFY_ARGS[@]}" &
+COMFY_PID=$!
+
+# handler は Serverless の環境でしか意味を持たない。Pod で起動した場合は
+# runpod SDK がすぐ抜けるので、そのまま ComfyUI を待ち続ける。
+# handler の失敗で Pod を落とさないよう、戻り値は無視する。
+if [ -f /opt/runpod/handler.py ]; then
+  echo "[start] starting the serverless handler"
+  python /opt/runpod/handler.py || echo "[start] handler exited, continuing to serve ComfyUI"
+fi
+
+wait "${COMFY_PID}"

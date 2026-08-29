@@ -63,9 +63,10 @@ RUN set -eu \
     && rm -rf /root/.cache/pip
 
 COPY start.sh /opt/runpod/start.sh
+COPY handler.py /opt/runpod/handler.py
 COPY healthcheck.py /opt/runpod/healthcheck.py
 RUN chmod +x /opt/runpod/start.sh
 
 WORKDIR /workspace
-EXPOSE 80 8188 8189 22
+EXPOSE 8188 8189 22
 CMD ["/opt/runpod/start.sh"]

@@ -11,20 +11,16 @@
     "gpuCount": 1,
     "env": [
       {
+        "key": "COMFY_PORT",
+        "value": "8188"
+      },
+      {
         "key": "ACESTEP_XL_VARIANT",
         "value": "xl_turbo"
       },
       {
         "key": "ACESTEP_LM",
         "value": "qwen_0.6b"
-      },
-      {
-        "key": "PORT",
-        "value": "80"
-      },
-      {
-        "key": "HEALTH_CHECK_PATH",
-        "value": "/system_stats"
       }
     ],
     "allowedCudaVersions": [

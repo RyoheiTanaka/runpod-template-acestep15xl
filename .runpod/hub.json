@@ -1,11 +1,10 @@
 {
   "title": "ComfyUI ACE-Step 1.5 XL",
-  "description": "ACE-Step 1.5 XL music generation on ComfyUI. Models are fetched on first boot, so nothing is baked into the image. Deploy as a Pod for the ComfyUI web UI, or as a load balancing endpoint to drive the ComfyUI HTTP API directly.",
+  "description": "ACE-Step 1.5 XL music generation on ComfyUI. Models are fetched on first boot, so nothing is baked into the image. Deploy as a Pod to use the ComfyUI web UI, or as a Serverless endpoint to run workflows through the queue API — the same image serves both.",
   "type": "serverless",
   "category": "audio",
   "config": {
     "runsOn": "GPU",
-    "endpointType": "LB",
     "containerDiskInGb": 100,
     "gpuCount": 1,
     "gpuIds": "AMPERE_24,ADA_24,ADA_32_PRO,AMPERE_48,ADA_48_PRO,BLACKWELL_96,AMPERE_80,ADA_80_PRO,HOPPER_141",
@@ -41,12 +40,8 @@
     ],
     "env": [
       {
-        "key": "PORT",
-        "value": "80"
-      },
-      {
-        "key": "HEALTH_CHECK_PATH",
-        "value": "/system_stats"
+        "key": "COMFY_PORT",
+        "value": "8188"
       },
       {
         "key": "COMFY_PINNED_MEMORY",
