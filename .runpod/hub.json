@@ -1,6 +1,7 @@
 {
-  "title": "ComfyUI ACE-Step 1.5 XL",
+  "title": "ComfyUI ACE-Step 1.5 XL — FreeCraftLog",
   "description": "ACE-Step 1.5 XL music generation on ComfyUI. Models are fetched on first boot, so nothing is baked into the image. Deploy as a Pod to use the ComfyUI web UI, or as a Serverless endpoint to run workflows through the queue API — the same image serves both.",
+  "iconUrl": "https://raw.githubusercontent.com/RyoheiTanaka/runpod-template-acestep15xl/main/.runpod/icon.png",
   "type": "serverless",
   "category": "audio",
   "config": {
