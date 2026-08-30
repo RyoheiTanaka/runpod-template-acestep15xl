@@ -3,8 +3,12 @@ set -euo pipefail
 
 WORKSPACE="${WORKSPACE:-/workspace}"
 COMFY_PORT="${COMFY_PORT:-${PORT:-8188}}"
-ACESTEP_XL_VARIANT="${ACESTEP_XL_VARIANT:-all}"
-ACESTEP_LM="${ACESTEP_LM:-all}"
+# Default to the smallest usable pair rather than everything. "all" is three
+# diffusion models and three encoders, which does not fit the 50GB container
+# disk this listing asks for, and nothing sets these when the image is run
+# directly or deployed somewhere that does not apply the listing's inputs.
+ACESTEP_XL_VARIANT="${ACESTEP_XL_VARIANT:-xl_turbo}"
+ACESTEP_LM="${ACESTEP_LM:-qwen_0.6b}"
 COMFY_DIR="${COMFY_DIR:-/opt/ComfyUI}"
 OUTPUT_DIR="${OUTPUT_DIR:-${WORKSPACE}/outputs}"
 MODEL_ROOT="${WORKSPACE}/models/acestep15xl"
