@@ -239,7 +239,8 @@ COMFY_PID=$!
 # handler の失敗で Pod を落とさないよう、戻り値は無視する。
 if [ -f /opt/runpod/handler.py ]; then
   echo "[start] starting the serverless handler"
-  if python /opt/runpod/handler.py; then
+  # runpod SDK は /opt/runpod/pylibs に分離してある（Dockerfile の説明を参照）
+  if PYTHONPATH=/opt/runpod/pylibs python /opt/runpod/handler.py; then
     echo "[start] handler returned cleanly"
   elif [ -n "${RUNPOD_ENDPOINT_ID:-}" ]; then
     # On Serverless the handler is the worker: it is what registers with the

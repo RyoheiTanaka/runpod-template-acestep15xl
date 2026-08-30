@@ -56,12 +56,23 @@ RUN set -eu \
     && cat /opt/torch-constraints.txt \
     && git clone --depth 1 --branch "${COMFYUI_REF}" "${COMFYUI_REPO}" "${COMFY_DIR}" \
     && cd "${COMFY_DIR}" \
-    && python -m pip install huggingface_hub runpod \
-    && python -c 'import runpod; print("runpod:", runpod.__version__)' \
+    && python -m pip install huggingface_hub \
     && python -m pip install -r requirements.txt -c /opt/torch-constraints.txt \
     && python -c 'import torch, torchvision; print("after install:", torch.__version__, torchvision.__version__)' \
     && python -c 'import torchvision; torchvision.ops.nms' \
     && rm -rf /root/.cache/pip
+
+# runpod SDK は handler 専用のディレクトリに入れ、ComfyUI の環境から分離する。
+#
+# 同じ環境に入れると cu130 ベース（ubuntu24.04 のシステム Python）で失敗する。
+# runpod は fastapi[all] を引き込み、pip が apt 由来のパッケージを置き換えようとするが、
+# それらは RECORD ファイルを持たないため `error: uninstall-no-record-file` で落ちる。
+# --target は何もアンインストールしないので、この経路を踏まない。
+#
+# import 検証を同じレイヤに置き、インストールが効かなければビルドを落とす。
+# 一度これを怠って「入ったつもり」のイメージを出し、3リリース分を無駄にした。
+RUN python -m pip install --no-cache-dir --target /opt/runpod/pylibs runpod \
+    && PYTHONPATH=/opt/runpod/pylibs python -c 'import runpod; print("runpod:", runpod.__version__)'
 
 COPY start.sh /opt/runpod/start.sh
 COPY handler.py /opt/runpod/handler.py
