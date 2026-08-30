@@ -239,7 +239,21 @@ COMFY_PID=$!
 # handler の失敗で Pod を落とさないよう、戻り値は無視する。
 if [ -f /opt/runpod/handler.py ]; then
   echo "[start] starting the serverless handler"
-  python /opt/runpod/handler.py || echo "[start] handler exited, continuing to serve ComfyUI"
+  if python /opt/runpod/handler.py; then
+    echo "[start] handler returned cleanly"
+  elif [ -n "${RUNPOD_ENDPOINT_ID:-}" ]; then
+    # On Serverless the handler is the worker: it is what registers with the
+    # job queue and reports this container's existence. If it dies, Runpod
+    # sees an endpoint that never fills any worker, with no clue why -- which
+    # is exactly how a missing `runpod` package hid for several releases.
+    # Fail the container so the failure is visible instead of silent.
+    echo "[start] error: handler failed on a Serverless worker (RUNPOD_ENDPOINT_ID=${RUNPOD_ENDPOINT_ID})"
+    exit 1
+  else
+    # On a Pod there is no job queue to join, so the handler exiting is
+    # expected. ComfyUI is already up and is the thing being used here.
+    echo "[start] handler exited; not a Serverless worker, continuing to serve ComfyUI"
+  fi
 fi
 
 wait "${COMFY_PID}"

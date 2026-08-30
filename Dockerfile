@@ -56,7 +56,8 @@ RUN set -eu \
     && cat /opt/torch-constraints.txt \
     && git clone --depth 1 --branch "${COMFYUI_REF}" "${COMFYUI_REPO}" "${COMFY_DIR}" \
     && cd "${COMFY_DIR}" \
-    && python -m pip install huggingface_hub \
+    && python -m pip install huggingface_hub runpod \
+    && python -c 'import runpod; print("runpod:", runpod.__version__)' \
     && python -m pip install -r requirements.txt -c /opt/torch-constraints.txt \
     && python -c 'import torch, torchvision; print("after install:", torch.__version__, torchvision.__version__)' \
     && python -c 'import torchvision; torchvision.ops.nms' \
