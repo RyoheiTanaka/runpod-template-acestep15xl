@@ -7,12 +7,18 @@ Hub's own test both speak.
 
 The job contract has two shapes, and both are real:
 
-    {}                      -> ComfyUI's /system_stats, for a liveness or
+    {"health_check": true}  -> ComfyUI's /system_stats, for a liveness or
                                capability check that costs nothing
     {"workflow": {...}}     -> run the workflow and return its outputs
 
-The first is what the Hub's build-time test uses. It is not a validation-only
-back door: an empty request returning server status is a reasonable thing for
+Anything without a "workflow" key takes the first path, so the exact probe key
+does not matter -- but it cannot be empty. Runpod drops an empty `input` from
+the job it hands the SDK, which then rejects the job before this code runs:
+
+    Job has missing field(s): id or input.
+
+The first path is what the Hub's build-time test uses. It is not a
+validation-only back door: reporting server status is a reasonable thing for
 the API to do, and anyone deploying this as an endpoint gets the same answer.
 """
 

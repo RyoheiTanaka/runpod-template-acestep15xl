@@ -25,11 +25,16 @@ Two request shapes, both real:
 ```jsonc
 // No workflow: returns ComfyUI's /system_stats. A liveness and capability
 // check that costs nothing.
-{ "input": {} }
+{ "input": { "health_check": true } }
 
 // A workflow in ComfyUI's API format: runs it and returns the outputs.
 { "input": { "workflow": { /* ... */ } } }
 ```
+
+Any input without a `workflow` key takes the first path, so the probe key
+itself does not matter. It does have to be non-empty, though: Runpod drops an
+empty `input` from the job it hands the worker, and the SDK then rejects the
+job with `Job has missing field(s): id or input.` before the handler runs.
 
 Outputs come back base64-encoded under `files`, each with its `filename`,
 `kind` (`audio` for ACE-Step) and originating `node_id`. Anything larger than

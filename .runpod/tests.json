@@ -2,7 +2,9 @@
   "tests": [
     {
       "name": "comfyui_serves_system_stats",
-      "input": {},
+      "input": {
+        "health_check": true
+      },
       "timeout": 900000
     }
   ],
