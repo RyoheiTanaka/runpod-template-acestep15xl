@@ -1,78 +1,30 @@
-# A pod boot measured image pull at 5m45s of a 7m23s startup against a Hub test
-# deadline of roughly 7 minutes, and the base was nearly all of that weight: of
-# 30.6GB uncompressed, only 1.7GB was ours. The devel variant ships nvcc,
-# headers and static libs that never run. This runtime image is 3.99GB
-# compressed against roughly 9.4GB, on the same torch 2.8.0 and CUDA 12.8 --
-# and it carries the release build rather than a dated dev snapshot.
-ARG BASE_IMAGE=pytorch/pytorch:2.8.0-cuda12.8-cudnn9-runtime
+# The heavy layers -- apt packages, the torch/torchvision pairing, the ComfyUI
+# checkout, its requirements, and the runpod SDK -- are not built here. They
+# live in a prebuilt public base image, built by RyoheiTanaka/runpod-templates
+# from base/Dockerfile, which is where the reasoning behind each of them is
+# recorded.
+#
+# They were moved out because of the Hub's build ceiling. A Hub `docker build`
+# is killed at 30 minutes, separately from the 160-minute overall window. The
+# v0.4.0 build hit it without a single line of this Dockerfile having changed:
+# the builder's pip download ran at 68-80 kB/s and was cut off part way through
+# a 100 MB wheel, while the same Dockerfile built in about 4 minutes on GitHub
+# Actions. There is no retry button for a Hub build, so recovering meant
+# re-releasing identical content under a new version number.
+#
+# Pre-building and pulling from a registry is what Runpod's own documentation
+# recommends for this. With the work already done, what remains here is a few
+# COPY lines, so a slow builder can no longer fail the build.
+#
+# The base image must stay public on GHCR -- the Hub cannot use a privately
+# hosted image as a base.
+#
+# Bumping ComfyUI or any dependency means cutting a new base-v* tag in
+# runpod-templates and raising this pin. It does not happen implicitly.
+ARG BASE_IMAGE=ghcr.io/ryoheitanaka/runpod-comfyui-base:v1-cuda12.8
 FROM ${BASE_IMAGE}
 
-ARG COMFYUI_REPO=https://github.com/Comfy-Org/ComfyUI.git
-ARG COMFYUI_REF=v0.32.0
-
 LABEL org.opencontainers.image.source="https://github.com/RyoheiTanaka/runpod-template-acestep15xl"
-
-ENV DEBIAN_FRONTEND=noninteractive \
-    COMFY_DIR=/opt/ComfyUI \
-    HF_XET_HIGH_PERFORMANCE=1 \
-    PIP_NO_CACHE_DIR=1 \
-    PYTHONUNBUFFERED=1
-
-# openssh-server: CMD で公式イメージの entrypoint を置き換えるため、sshd は start.sh が起動する
-RUN apt-get update && apt-get install -y --no-install-recommends \
-      git \
-      curl \
-      ca-certificates \
-      ffmpeg \
-      libgl1 \
-      libglib2.0-0 \
-      libsndfile1 \
-      openssh-server \
-    && mkdir -p /run/sshd \
-    && rm -rf /var/lib/apt/lists/*
-
-# ComfyUI の requirements.txt は torch / torchvision を裸で要求するため、pip がベースイメージの
-# PyTorch を PyPI の既定ビルドで置き換えうる。CUDA ビルドが変わると壊れるので constraints で固定する。
-#
-# ただし torch だけ固定すると torchvision が PyPI から浮いてペアが崩れ、C++ 拡張が噛み合わずに
-# `RuntimeError: operator torchvision::nms does not exist` で ComfyUI が起動しなくなる。
-# cu130 ベースには torchvision が入っていないため、torch と同じ PyTorch index から先に入れておく。
-#
-# --depth 1 で全履歴の取得を避ける（ComfyUI の .git は数百MB になる）
-RUN set -eu \
-    && TORCH_CU="$(python -c 'import re, torch; m = re.search(r"\+(cu[0-9]+)", torch.__version__); print(m.group(1) if m else "")')" \
-    && echo "base torch: $(python -c 'import torch; print(torch.__version__)') (index: ${TORCH_CU:-pypi})" \
-    && python -m pip install --upgrade pip \
-    && python -m pip freeze | grep -E '^(torch|torchaudio)==' > /opt/torch-constraints.txt \
-    && test -s /opt/torch-constraints.txt \
-    && if ! python -c 'import torchvision' >/dev/null 2>&1; then \
-         if [ -n "${TORCH_CU}" ]; then \
-           python -m pip install torchvision --index-url "https://download.pytorch.org/whl/${TORCH_CU}" -c /opt/torch-constraints.txt; \
-         else \
-           python -m pip install torchvision -c /opt/torch-constraints.txt; \
-         fi; \
-       fi \
-    && python -m pip freeze | grep -E '^(torch|torchvision|torchaudio)==' > /opt/torch-constraints.txt \
-    && cat /opt/torch-constraints.txt \
-    && git clone --depth 1 --branch "${COMFYUI_REF}" "${COMFYUI_REPO}" "${COMFY_DIR}" \
-    && cd "${COMFY_DIR}" \
-    && python -m pip install huggingface_hub \
-    && python -m pip install -r requirements.txt -c /opt/torch-constraints.txt \
-    && python -c 'import torch, torchvision; print("after install:", torch.__version__, torchvision.__version__)' \
-    && python -c 'import torchvision; torchvision.ops.nms' \
-    && rm -rf /root/.cache/pip
-
-# runpod SDK は handler 専用のディレクトリに入れ、ComfyUI の環境から分離する。
-#
-# 同じ環境に入れると cu130 ベース（ubuntu24.04 のシステム Python）で失敗する。
-# runpod は fastapi[all] を引き込み、pip が apt 由来のパッケージを置き換えようとするが、
-# それらは RECORD ファイルを持たないため `error: uninstall-no-record-file` で落ちる。
-# --target は何もアンインストールしないので、この経路を踏まない。
-#
-# import 検証を同じレイヤに置き、インストールが効かなければビルドを落とす。
-# 一度これを怠って「入ったつもり」のイメージを出し、3リリース分を無駄にした。
-RUN python -m pip install --no-cache-dir --target /opt/runpod/pylibs runpod \
-    && PYTHONPATH=/opt/runpod/pylibs python -c 'import runpod; print("runpod:", runpod.__version__)'
 
 COPY start.sh /opt/runpod/start.sh
 COPY handler.py /opt/runpod/handler.py
