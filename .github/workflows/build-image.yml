@@ -25,22 +25,27 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        # These are now tags of the shared prebuilt base published by
+        # RyoheiTanaka/runpod-templates, not the upstream PyTorch images. Each
+        # base tag already carries the CUDA build its name says.
+        #
         # cuda12.8 is the default. The old runpod base carried
         # NVIDIA_REQUIRE_CUDA, which failed a container before it started when
-        # the host was below the required version; the pytorch base does not
-        # appear to, so an unsuitable host will surface as a runtime error
-        # instead. allowedCudaVersions in hub.json is what keeps deploys on
-        # hosts that can actually run this.
+        # the host was below the required version; the pytorch base underneath
+        # cuda12.8 does not appear to, so an unsuitable host will surface as a
+        # runtime error instead. allowedCudaVersions in hub.json is what keeps
+        # deploys on hosts that can actually run this.
         cuda:
           # The default, and what the Hub itself builds: the Hub passes no
           # build-args, so the Dockerfile's own ARG default is what it uses.
+          # Keep this in step with that default.
           - tag: cuda12.8
-            base: pytorch/pytorch:2.8.0-cuda12.8-cudnn9-runtime
+            base: ghcr.io/ryoheitanaka/runpod-comfyui-base:v1-cuda12.8
           # Kept as an option. On cu128 comfy-kitchen reports its cuda and
           # triton backends as disabled and falls back to eager, so a cu130
           # build may generate faster -- unmeasured, and on a heavier base.
           - tag: cuda13.0
-            base: runpod/pytorch:1.1.0-cu1300-torch291-ubuntu2404
+            base: ghcr.io/ryoheitanaka/runpod-comfyui-base:v1-cuda13.0
 
     steps:
       - name: Checkout
