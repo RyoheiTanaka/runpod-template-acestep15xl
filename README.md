@@ -71,7 +71,6 @@ than failing.
 | Name | Default | Description |
 |---|---|---|
 | `ACESTEP_XL_VARIANT` | `xl_turbo` | Diffusion model to download. One of `xl_base`, `xl_sft`, `xl_turbo`, `all`. |
-| `ACESTEP_LM` | `qwen_0.6b` | Text encoder to download. One of `qwen_0.6b`, `qwen_1.7b`, `qwen_4b`, `all`. |
 | `HF_TOKEN` | unset | Optional. Set a real token to avoid anonymous rate limits while downloading. |
 | `COMFY_PINNED_MEMORY` | `auto` | `auto` reads the container memory limit from cgroup and disables pinned memory when that limit is well below host RAM. Override with `on` or `off`. |
 | `COMFY_EXTRA_ARGS` | unset | Extra arguments passed straight to ComfyUI, for example `--lowvram`, `--cache-none`, `--reserve-vram 2`. |
@@ -80,8 +79,13 @@ than failing.
 | `COMFY_WORKFLOW_TIMEOUT` | `1800` | Seconds a single workflow may run before the job gives up. |
 | `WORKSPACE` | `/workspace` | Base directory for ComfyUI, models, cache, and logs. |
 
-Unsupported values make the start script exit with an explicit error rather than
-falling back to a default.
+Both `qwen_0.6b` and `qwen_4b` text encoders are always downloaded. The official
+ACE-Step 1.5 XL workflows load both through `DualCLIPLoader`, so there is nothing
+to choose here.
+
+An unsupported `ACESTEP_XL_VARIANT` makes the start script exit with an explicit
+error rather than falling back to a default. `ACESTEP_LM` is no longer used:
+passing it is ignored with a warning rather than treated as an error.
 
 ## Recommended GPU
 
@@ -117,6 +121,20 @@ rather than failing it.
 endpoint of your own — it reports 204 while models download and 200 once
 ComfyUI answers. Set `PORT_HEALTH` to a spare port to run it. It stays off by
 default, and refuses to start on the same port as ComfyUI.
+
+## Hub tests
+
+`.runpod/tests.json` runs two tests. The first asks for `system_stats` and only
+proves ComfyUI is up. The second submits the official
+`ACE-Step 1.5XL Turbo: Text to Music` workflow in API format and requires it to
+produce audio, which is what catches a broken model set — a missing text
+encoder fails at `DualCLIPLoader`, and a health check never gets that far.
+
+The test workflow is the official graph with two values lowered so the test
+stays inside its timeout: `duration` / `seconds` are 10 seconds instead of 120,
+and the tags and lyrics are short. Everything that decides whether the model set
+is valid — both encoders, the diffusion model, the VAE — is unchanged. JSON
+takes no comments, which is why this note lives here.
 
 ## Paths
 

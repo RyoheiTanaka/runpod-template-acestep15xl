@@ -1,6 +1,6 @@
 {
   "title": "ComfyUI ACE-Step 1.5 XL — FreeCraftLog",
-  "description": "ACE-Step 1.5 XL music generation on ComfyUI. Models are fetched on first boot, so nothing is baked into the image. Deploy as a Pod to use the ComfyUI web UI, or as a Serverless endpoint to run workflows through the queue API — the same image serves both.",
+  "description": "ACE-Step 1.5 XL music generation on ComfyUI. Models are fetched on first boot, so nothing is baked into the image. Deploy as a Pod to use the ComfyUI web UI, or as a Serverless endpoint to run workflows through the queue API — the same image serves both. Both the qwen_0.6b and qwen_4b text encoders are always downloaded, because every official ACE-Step 1.5 XL workflow loads that exact pair through DualCLIPLoader.",
   "iconUrl": "https://raw.githubusercontent.com/RyoheiTanaka/runpod-template-acestep15xl/main/.runpod/icon.png",
   "type": "serverless",
   "category": "audio",
@@ -22,24 +22,21 @@
     ],
     "presets": [
       {
-        "name": "Turbo (smallest, recommended)",
+        "name": "Turbo (fastest first boot)",
         "defaults": {
-          "ACESTEP_XL_VARIANT": "xl_turbo",
-          "ACESTEP_LM": "qwen_0.6b"
+          "ACESTEP_XL_VARIANT": "xl_turbo"
         }
       },
       {
-        "name": "Base",
+        "name": "Base (recommended)",
         "defaults": {
-          "ACESTEP_XL_VARIANT": "xl_base",
-          "ACESTEP_LM": "qwen_1.7b"
+          "ACESTEP_XL_VARIANT": "xl_base"
         }
       },
       {
         "name": "All models (longest first boot)",
         "defaults": {
-          "ACESTEP_XL_VARIANT": "all",
-          "ACESTEP_LM": "all"
+          "ACESTEP_XL_VARIANT": "all"
         }
       }
     ],
@@ -81,33 +78,6 @@
             }
           ],
           "default": "xl_turbo"
-        }
-      },
-      {
-        "key": "ACESTEP_LM",
-        "input": {
-          "name": "Text encoder",
-          "type": "string",
-          "description": "Which Qwen text encoder to download. Larger encoders follow prompts more closely but take longer to download and use more VRAM.",
-          "options": [
-            {
-              "label": "Qwen 0.6B",
-              "value": "qwen_0.6b"
-            },
-            {
-              "label": "Qwen 1.7B",
-              "value": "qwen_1.7b"
-            },
-            {
-              "label": "Qwen 4B",
-              "value": "qwen_4b"
-            },
-            {
-              "label": "All three",
-              "value": "all"
-            }
-          ],
-          "default": "qwen_0.6b"
         }
       },
       {
