@@ -123,14 +123,13 @@
             }
           },
           "10": {
-            "class_type": "SaveAudioAdvanced",
+            "class_type": "SaveAudioMP3",
             "inputs": {
               "audio": [
                 "9",
                 0
               ],
               "filename_prefix": "audio/hub_test",
-              "format": "mp3",
               "quality": "V0"
             }
           }

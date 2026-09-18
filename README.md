@@ -6,8 +6,10 @@ workflows through the queue API. The same image serves both: ComfyUI keeps
 running either way, and the job handler sits alongside it.
 
 Models are not baked into the image. They are downloaded from Hugging Face on
-first boot, so the first start takes a while. The default preset is the smallest
-combination (Turbo + Qwen 0.6B) to keep that first boot short.
+first boot, so the first start takes a while. The default preset downloads only
+the Turbo diffusion model to keep that first boot short. The text encoders are
+not part of that choice: qwen_0.6b and qwen_4b are always downloaded together,
+because every official ACE-Step 1.5 XL workflow loads the pair.
 
 ## Deployment
 
@@ -46,15 +48,20 @@ the format this expects — the UI's normal save format will not work.
 ### First boot
 
 Models are downloaded rather than baked in, so the first boot pulls the image
-and then the weights. Measured on a Runpod pod with an RTX 4090 and the default
-preset:
+and then the weights. Measured on a Runpod pod with an RTX 4090, before the
+text encoder change — the default set was one diffusion model and one encoder,
+10.7 GiB:
 
 | | |
 |---|---|
 | image pull and unpack | 4m27s |
-| model download | 25s |
+| model download (10.7 GiB) | 25s |
 | ComfyUI startup | 9s |
 | **total** | **5m01s** |
+
+The default set is now 18.5 GiB, because qwen_4b (7.8 GiB) is always downloaded
+alongside qwen_0.6b (1.1 GiB), so expect the download row to grow. That row has
+not been re-measured on this image.
 
 The pull dominates; the model download is a small part of it, which is why the
 weights are not baked into the image — doing that would add gigabytes to the
