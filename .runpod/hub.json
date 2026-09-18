@@ -61,7 +61,7 @@
           "description": "Which ACE-Step 1.5 XL diffusion model to download on first boot. Downloading all three roughly triples the first-boot time.",
           "options": [
             {
-              "label": "Turbo (fastest to download)",
+              "label": "Turbo",
               "value": "xl_turbo"
             },
             {
