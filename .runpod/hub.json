@@ -22,7 +22,7 @@
     ],
     "presets": [
       {
-        "name": "Turbo (fastest first boot)",
+        "name": "Turbo",
         "defaults": {
           "ACESTEP_XL_VARIANT": "xl_turbo"
         }
