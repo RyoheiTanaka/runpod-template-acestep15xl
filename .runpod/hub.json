@@ -1,6 +1,6 @@
 {
   "title": "ComfyUI ACE-Step 1.5 XL — FreeCraftLog",
-  "description": "ACE-Step 1.5 XL music generation on ComfyUI. Models are fetched on first boot, so nothing is baked into the image. Deploy as a Pod to use the ComfyUI web UI, or as a Serverless endpoint to run workflows through the queue API — the same image serves both. Both the qwen_0.6b and qwen_4b text encoders are always downloaded, because every official ACE-Step 1.5 XL workflow loads that exact pair through DualCLIPLoader.",
+  "description": "ACE-Step 1.5 XL music generation on ComfyUI. Models are fetched on first boot, so nothing is baked into the image. Deploy as a Serverless endpoint to run workflows through the queue API, or as a Pod to exercise the same worker with readable logs — a Hub deploy does not expose the ComfyUI web UI, because a Hub listing cannot declare its own ports. Both the qwen_0.6b and qwen_4b text encoders are always downloaded, because every official ACE-Step 1.5 XL workflow loads that exact pair through DualCLIPLoader.",
   "iconUrl": "https://raw.githubusercontent.com/RyoheiTanaka/runpod-template-acestep15xl/main/.runpod/icon.png",
   "type": "serverless",
   "category": "audio",
