@@ -11,10 +11,15 @@ To use ComfyUI in a browser, run the GHCR image from a Runpod template
 instead — see [In a browser](#in-a-browser).
 
 Models are not baked into the image. They are downloaded from Hugging Face on
-first boot, so the first start takes a while. The default preset downloads only
-the Turbo diffusion model to keep that first boot short. The text encoders are
-not part of that choice: qwen_0.6b and qwen_4b are always downloaded together,
-because every official ACE-Step 1.5 XL workflow loads the pair.
+first boot, so the first start takes a while. `ACESTEP_XL_VARIANT` decides which
+diffusion model comes down, and it defaults to `xl_turbo`; the deploy screen's
+presets set it for you. Note that picking Turbo over Base does not shorten that
+wait — each XL model is 9.28 GiB, so only the `all` preset takes longer. Turbo
+is faster to sample from, not faster to fetch.
+
+The text encoders are not part of that choice: qwen_0.6b and qwen_4b are always
+downloaded together, because every official ACE-Step 1.5 XL workflow loads the
+pair.
 
 ## Deployment
 
