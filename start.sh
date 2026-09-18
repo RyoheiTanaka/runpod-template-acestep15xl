@@ -3,12 +3,12 @@ set -euo pipefail
 
 WORKSPACE="${WORKSPACE:-/workspace}"
 COMFY_PORT="${COMFY_PORT:-${PORT:-8188}}"
-# Default to the smallest usable pair rather than everything. "all" is three
-# diffusion models and three encoders, which does not fit the 50GB container
-# disk this listing asks for, and nothing sets these when the image is run
-# directly or deployed somewhere that does not apply the listing's inputs.
+# Default to the single smallest diffusion model rather than everything. "all"
+# is three diffusion models, which does not fit the container disk this listing
+# asks for, and nothing sets this when the image is run directly or deployed
+# somewhere that does not apply the listing's inputs. The text encoders are not
+# a choice: both are always downloaded (see below).
 ACESTEP_XL_VARIANT="${ACESTEP_XL_VARIANT:-xl_turbo}"
-ACESTEP_LM="${ACESTEP_LM:-qwen_0.6b}"
 COMFY_DIR="${COMFY_DIR:-/opt/ComfyUI}"
 OUTPUT_DIR="${OUTPUT_DIR:-${WORKSPACE}/outputs}"
 MODEL_ROOT="${WORKSPACE}/models/acestep15xl"
@@ -26,7 +26,16 @@ echo "[start] workspace: ${WORKSPACE}"
 echo "[start] ComfyUI: ${COMFY_DIR}"
 echo "[start] output: ${OUTPUT_DIR}"
 echo "[start] ACE-Step XL variant: ${ACESTEP_XL_VARIANT}"
-echo "[start] ACE-Step LM: ${ACESTEP_LM}"
+echo "[start] text encoders: qwen_0.6b, qwen_4b"
+
+# ACESTEP_LM は廃止した。ACE-Step 1.5 XL の公式 workflow は DualCLIPLoader で
+# qwen_0.6b + qwen_4b の2本を読むため、選択式にすると4つの選択肢のうち3つが
+# 動かない構成になっていた。既に Hub から起動している利用者のために、
+# 渡されても落とさず警告だけ出す。
+if [ -n "${ACESTEP_LM:-}" ]; then
+  echo "[start] warning: ACESTEP_LM is no longer used and will be ignored."
+  echo "[start] warning: ACE-Step 1.5 XL workflows always require qwen_0.6b + qwen_4b."
+fi
 
 # モデル download 中は ComfyUI がまだ起動しておらず、health check は「起動中」ではなく
 # 「不健全」に見える。専用ポートを立てればその区別を 204 で伝えられるが、Hub の listing は
@@ -128,28 +137,10 @@ case "${ACESTEP_XL_VARIANT}" in
     ;;
 esac
 
-case "${ACESTEP_LM}" in
-  qwen_0.6b)
-    TEXT_ENCODERS=("qwen_0.6b_ace15.safetensors")
-    ;;
-  qwen_1.7b)
-    TEXT_ENCODERS=("qwen_1.7b_ace15.safetensors")
-    ;;
-  qwen_4b)
-    TEXT_ENCODERS=("qwen_4b_ace15.safetensors")
-    ;;
-  all)
-    TEXT_ENCODERS=(
-      "qwen_0.6b_ace15.safetensors"
-      "qwen_1.7b_ace15.safetensors"
-      "qwen_4b_ace15.safetensors"
-    )
-    ;;
-  *)
-    echo "[start] error: unsupported ACESTEP_LM=${ACESTEP_LM}. Use qwen_0.6b, qwen_1.7b, qwen_4b, or all."
-    exit 2
-    ;;
-esac
+TEXT_ENCODERS=(
+  "qwen_0.6b_ace15.safetensors"
+  "qwen_4b_ace15.safetensors"
+)
 
 for diffusion_model in "${DIFFUSION_MODELS[@]}"; do
   download_model "split_files/diffusion_models/${diffusion_model}"
