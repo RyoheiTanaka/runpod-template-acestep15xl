@@ -53,7 +53,7 @@ arbitrary ComfyUI graphs on it. Do not paste the proxy URL anywhere public.
 
 Not through the Hub. The image is published to GHCR as well, so create a Runpod
 template from
-`ghcr.io/ryoheitanaka/runpod-templates-acestep15xl:latest-cuda12.8`, declare
+`ghcr.io/ryoheitanaka/runpod-template-acestep15xl:latest-cuda12.8`, declare
 `8188/http` in its ports, and open **Connect to HTTP Service [Port 8188]** on
 the resulting pod.
 
