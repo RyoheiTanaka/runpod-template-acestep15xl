@@ -189,6 +189,14 @@ takes no comments, which is why this note lives here.
 | `/workspace/outputs` | Generated output |
 | `/workspace/logs` | Boot logs |
 
+## Further reading
+
+[How I listed this template on the Runpod Hub](https://freecraftlog.com/en/runpod-hub-listing-guide/)
+walks through the listing steps for this repository and the release attempts
+that failed along the way. A
+[Japanese version](https://freecraftlog.com/runpod-hub-listing-guide/) is also
+available.
+
 ## License
 
 The template code in this repository is MIT licensed. ACE-Step 1.5 XL and
